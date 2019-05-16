@@ -33,6 +33,8 @@
 
 #Directories
 /.vs
+Debug
+C8/Debug
 
 #Files
 *.user
