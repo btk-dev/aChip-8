@@ -139,6 +139,71 @@ void c8::clockCycle() {
 		break;
 	case 0x8000:
 		//arithmetic section
+		//Switch on last nibble of opcode
+		switch (c8::opcode & 0x000F) {
+		case 0x0000:
+			//set V[x} = V[y]
+			c8::V[(c8::opcode & 0x0F00) >> 8] = c8::V[(c8::opcode & 0x00F0) >> 4];
+			c8::pc += 2;
+			break;
+		case 0x0001:
+			//bitwise or on values V[x] and V[y]. Store in V[x]
+			c8::V[(c8::opcode & 0x0F00) >> 8] = c8::V[(c8::opcode & 0x0F00) >> 8] | c8::V[(c8::opcode & 0x00F0) >> 4];
+			c8::pc += 2;
+			break;
+		case 0x0002:
+			//bitwise and on values V[x] and V[y]. Store in V[x]
+			c8::V[(c8::opcode & 0x0F00) >> 8] = c8::V[(c8::opcode & 0x0F00) >> 8] & c8::V[(c8::opcode & 0x00F0) >> 4];
+			c8::pc += 2;
+			break;
+		case 0x0003:
+			//Bitwise xor on values V[x] and V[y]. Store in V[x]
+			c8::V[(c8::opcode & 0x0F00) >> 8] = c8::V[(c8::opcode & 0x0F00) >> 8] ^ c8::V[(c8::opcode & 0x00F0) >> 4];
+			c8::pc += 2;
+			break;
+		case 0x0004:
+			//Set V[x] = V[x] + V[y] with V[F] as the carry
+			c8::V[(c8::opcode & 0x0F00) >> 8] += c8::V[(c8::opcode & 0x00F0) >> 4];
+			if (c8::V[(c8::opcode & 0x00F0) >> 4] > (0xFF - c8::V[(c8::opcode & 0x0F00) >> 8]))
+				c8::V[0xF] = 1;
+			else
+				c8::V[0xF] = 0;
+			c8::pc += 2;
+			break;
+		case 0x0005:
+			//Set V[x] = V[y] - V[x]. If V[x] > V[y] set V[F] = 0, else 1
+			c8::V[(c8::opcode & 0x0F00) >> 8] = c8::V[(c8::opcode & 0x00F0) >> 4] - c8::V[(c8::opcode & 0x0F00) >> 8];
+			if (c8::V[(c8::opcode & 0x00F0) >> 4] > c8::V[(c8::opcode & 0x0F00) >> 8])
+				c8::V[0xF] = 0;
+			else
+				c8::V[0xF] = 1;
+			c8::pc += 2;
+			break;
+		case 0x0006:
+			//Set V[x] = V[x] shift right 1. If the least significant bit of V[x] = 1 then V[F] = 1, else 0
+			c8::V[0xF] = c8::V[(c8::opcode & 0x0F00) >> 8] & 0x1;
+			c8::V[(c8::opcode & 0x0F00) >> 8] >>= 1;
+			c8::pc += 2;
+			break;
+		case 0x0007:
+			//Set V[x] = V[y] - V[x]. If V[y] >  V[x], V[F] = 1
+			c8::V[(c8::opcode & 0x0F00) >> 8] = c8::V[(c8::opcode & 0x00F0) >> 4] - c8::V[(c8::opcode & 0x0F00) >> 8];
+			if (c8::V[(c8::opcode & 0x0F00) >> 8] > c8::V[(c8::opcode & 0x00F0) >> 4])
+				c8::V[0xF] = 0;
+			else
+				c8::V[0xF] = 1;
+			c8::pc += 2;
+			break;
+		case 0x000E:
+			//If the most significant bit of V[x] is 1 then V[F] is set to 1.
+			c8::V[0xF] = c8::V[(c8::opcode & 0x0F00) >> 8] >> 7;
+			c8::V[(c8::opcode & 0x0F00) >> 8] <<= 1;
+			c8::pc += 2;
+			break;
+		default:
+			printf("Unrecognized opcode");
+			break;
+		}
 	case 0x9000:
 		//opcode 9xy0. Skip next instruction if V[x] != V[y]
 		if (c8::V[(c8::opcode & 0x0F00) >> 8] != c8::V[c8::opcode & 0x00F0] >> 4)
