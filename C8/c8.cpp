@@ -227,6 +227,24 @@ void c8::clockCycle() {
 		break;
 	case 0xD000:
 		//drawing opcode
+		unsigned short x = c8::V[(c8::opcode & 0x0F00) >> 8];
+		unsigned short y = c8::V[(c8::opcode & 0x00F0) >> 4];
+		unsigned short h = c8::opcode & 0x000F;
+		unsigned short p;
+		c8::V[0xF] = 0;
+		for (int i = 0; i < h; i++) {
+			p = c8::mem[c8::I + i];
+			for (int j = 0; j < 8; j++) {
+				if ((p & (0x80 >> j)) != 0) {
+					if (c8::gfx[(x + j + ((y + i) * 64))] == 1)
+						c8::V[0xF] = 1;
+					c8::gfx[x + j + ((y + i) * 64)] ^= 1;
+				}
+			}
+		}
+		c8::drawFlag = true;
+		c8::pc += 2;
+		break;
 	case 0xE000:
 		//2 key related instructions. Switch on AND mask last byte
 		switch (c8::opcode & 0x00FF) {
